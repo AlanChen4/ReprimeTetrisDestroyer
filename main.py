@@ -8,7 +8,7 @@ from random import randint
 
 
 class regDestroyer():
-  ''' destroy these noobs in regprime tetris'''
+  '''bot made for winning every game on regprime tetris 2 play'''
 
 
   def __init__(self):
