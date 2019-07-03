@@ -30,6 +30,8 @@ class regDestroyer():
     join_url = "http://regprime.com/api/Tetris2PlayApi/{0}/JoinGame".format(game_code)
     join_payload = {}
     join_status = self.session.post(join_url, data=join_payload)
+
+    # continue to sync games if successfully joined
     if join_status.status_code > 200:
       self.game_key = json.loads(join_status.text)['Data']
       print("[success] game key:" + self.game_key)
@@ -44,6 +46,8 @@ class regDestroyer():
     setup_url = "http://regprime.com/api/Tetris2PlayApi/SetupGame"
     setup_payload = {}
     setup_status = self.session.post(setup_url, data=setup_payload)
+
+    # continue to wait for opponett if game is created
     if setup_status.status_code > 200:
       self.setup_key = json.loads(setup_status.text)['Data']
       print("[success] setup properly with code: " + str(self.setup_key))
@@ -53,6 +57,7 @@ class regDestroyer():
 
 
   def waitForOpponent(self):
+    # makes post requests and waits until the game key is responded
     wait_url = "http://regprime.com/api/Tetris2PlayApi/{0}/WaitForOpponent".format(self.setup_key)
     wait_payload = {}
     wait_status = self.session.post(wait_url, data=wait_payload)
@@ -86,6 +91,12 @@ class regDestroyer():
       time.sleep(5)
       current_height = randint(1,7)
       syncId = str(uuid.uuid4())
+
+      
+      # - currentHeight is the height of the player's tetris blocks
+      # -  total lines is the total number of lines cleared
+      # - add on lines is the numer of lines to add to opponett for each request made
+      # - syncId is a guid generated each time
       update_payload = {
         "PlayerId":         self.game_mode,
         "CurrentHeight":    current_height,
@@ -93,12 +104,16 @@ class regDestroyer():
         "AddonLines":       self.number_of_lines,
         "ClientSyncGuid":   syncId
       }
-      update_status = self.session.post(update_url, data=update_payload)
+
+
       # updates user when post request has been made
+      update_status = self.session.post(update_url, data=update_payload)
       timestamp = str(datetime.now().strftime("%H:%M:%S.%f")[:-3])
       print("[{0}]{1}".format(timestamp, update_status.text))
       if json.loads(update_status.text)['Data']['WinningPlayer'] != 0:
         break
+
+    # informs user when game has finished and ends while loop
     print("[success] game has completed")
 
 
